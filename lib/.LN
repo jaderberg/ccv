@@ -1,0 +1,1 @@
+-lm -ljpeg -lpng -lz -L/usr/X11/lib

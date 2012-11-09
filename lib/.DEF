@@ -1,0 +1,1 @@
+-msse2 -D HAVE_SSE2 -D HAVE_LIBJPEG -D HAVE_LIBPNG -I/usr/X11/include

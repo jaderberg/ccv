@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+
+if [ `uname` == "Darwin" ] ; then
+  IS_OSX=true
+fi
+
+if [ "$1" = "force" ] ; then
+	rm -f .CC .DEF .LN
+fi
+
+if [ ! -e .CC -o ! -e .DEF -o ! -e .LN ] ; then
+	echo -e "\n There are a few questions for you:\n"
+fi
+
+if [ -e .CC ] ; then
+	CC=`cat .CC`
+else
+	echo -ne "  Default compiler: \033[4mclang\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) read -p "  Your favorite compiler: " CC
+			;;
+	*	  ) CC='clang'
+			;;
+	esac
+	echo $CC > .CC
+fi
+
+if [ -e .DEF -a -e .LN ] ; then
+	CFLAGS=`cat .DEF`
+	LDFLAGS=`cat .LN`
+else
+	CFLAGS=" "
+	LDFLAGS="-lm "
+	echo -ne "  Enable \033[4mSSE2\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-msse2 -D HAVE_SSE2 "
+			;;
+	esac
+	echo -ne "  With \033[4mlibjpeg\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_LIBJPEG "
+			LDFLAGS="$LDFLAGS-ljpeg "
+			;;
+	esac
+	echo -ne "  With \033[4mlibpng\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_LIBPNG "
+			LDFLAGS="$LDFLAGS-lpng -lz "
+      if [[ $IS_OSX ]] ; then
+        CFLAGS="$CFLAGS-I/usr/X11/include "
+        LDFLAGS="$LDFLAGS-L/usr/X11/lib "
+      fi
+			;;
+	esac
+	echo -ne "  With \033[4mgsl\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_GSL "
+			LDFLAGS="$LDFLAGS-lgsl "
+			;;
+	esac
+	echo -ne "  With \033[4mfftw3\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_FFTW3 "
+			LDFLAGS="$LDFLAGS-lfftw3f -lfftw3 "
+			;;
+	esac
+
+	echo -ne "  With \033[4mliblinear\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_LIBLINEAR "
+			LDFLAGS="$LDFLAGS-llinear "
+			;;
+	esac
+	echo -ne "  With \033[4mcblas\033[m [Y/n] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[nN]* ) ;;
+	*	  ) CFLAGS="$CFLAGS-D HAVE_CBLAS "
+			LDFLAGS="$LDFLAGS-lblas "
+			;;
+	esac
+	echo -ne "  Use \033[4mopenmp\033[m [y/N] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[yY]* ) CFLAGS="$CFLAGS-D USE_OPENMP -fopenmp "
+			LDFLAGS="$LDFLAGS-lgomp "
+			;;
+	*	  ) ;;
+	esac
+	echo -ne "  With \033[4mavcodec\033[m [y/N] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[yY]* ) CFLAGS="$CFLAGS-D HAVE_AVCODEC "
+			LDFLAGS="$LDFLAGS-lavcodec "
+			;;
+	*	  ) ;;
+	esac
+	echo -ne "  With \033[4mavformat\033[m [y/N] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[yY]* ) CFLAGS="$CFLAGS-D HAVE_AVFORMAT "
+			LDFLAGS="$LDFLAGS-lavformat "
+			;;
+	*	  ) ;;
+	esac
+	echo -ne "  With \033[4mswscale\033[m [y/N] ? "
+	read -n 1 yn ; if [ ! -z $yn ] ; then echo ; fi
+	case $yn in
+	[yY]* ) CFLAGS="$CFLAGS-D HAVE_SWSCALE "
+			LDFLAGS="$LDFLAGS-lswscale "
+			;;
+	*	  ) ;;
+	esac
+	echo $CFLAGS > .DEF
+	echo $LDFLAGS > .LN
+fi
+
+CFLAGS="${CFLAGS#"${CFLAGS%%[![:space:]]*}"}" # remove leading whitespaces
+CFLAGS="${CFLAGS%"${CFLAGS##*[![:space:]]}"}" # remove trailing whitespaces
+LDFLAGS="${LDFLAGS#"${LDFLAGS%%[![:space:]]*}"}"
+LDFLAGS="${LDFLAGS%"${LDFLAGS##*[![:space:]]}"}"
+
+echo -e "\n \033[1mUSE\033[m: \033[4m$CC\033[m\n \033[1mCOMPILE FLAGS\033[m: \033[4m$CFLAGS\033[m\n \033[1mLINK FLAGS\033[m: \033[4m$LDFLAGS\033[m\n"
