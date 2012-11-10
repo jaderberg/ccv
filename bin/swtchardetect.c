@@ -1,8 +1,15 @@
-//clang swtdetect.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -otestccv `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm
+// Max Jaderberg 10/11/12
+// e.g. ./swt_char_detect img.jpg
+//		./swt_char_detect -i img.jpg
+
+//clang swtchardetect.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -o swt_char_detect `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm
+
+
 
 #include "ccv.h"
 #include <sys/time.h>
 #include <ctype.h>
+#include <unistd.h>
 
 
 unsigned int get_current_time()
@@ -14,15 +21,33 @@ unsigned int get_current_time()
 
 int main(int argc, char** argv)
 {
+	// process arguments
+	char* image_file = "";
+	int scale_invariant = 0;
+	char ch;
+	while ((ch = getopt(argc, argv, "i")) != EOF)
+		switch(ch) {
+			case 'i':
+				scale_invariant = 1;
+				break;
+		}
+	argc -= optind;
+	argv += optind;
+	image_file = argv[0];
 	
 	ccv_enable_default_cache();
 	ccv_dense_matrix_t* image = 0;
-	ccv_read(argv[1], &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
-	
+	ccv_read(image_file, &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
+
+	if (image==0) {
+		fprintf(stderr, "ERROR: image could not be read\n");
+		return 1;
+	}
 	
 	unsigned int elapsed_time = get_current_time();
+
 	ccv_swt_param_t params = ccv_swt_default_params;
-	if (argc == 3)
+	if (scale_invariant)
 		params.scale_invariant = 1;
 
 	ccv_array_t* words = ccv_swt_detect_chars(image, params);

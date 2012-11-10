@@ -1,8 +1,13 @@
-//clang swtdetect.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -otestccv `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm
+// Max Jaderberg 10/11/12
+// e.g. ./swt_word_detect img.jpg
+//		./swt_word_detect -i img.jpg
+
+//clang swtdetect.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -o swt_word_detect `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm
 
 #include "ccv.h"
 #include <sys/time.h>
 #include <ctype.h>
+#include <unistd.h>
 
 
 unsigned int get_current_time()
@@ -14,58 +19,51 @@ unsigned int get_current_time()
 
 int main(int argc, char** argv)
 {
+	// process arguments
+	char* image_file = "";
+	int scale_invariant = 0;
+	char ch;
+	while ((ch = getopt(argc, argv, "i")) != EOF)
+		switch(ch) {
+			case 'i':
+				scale_invariant = 1;
+				break;
+		}
+	argc -= optind;
+	argv += optind;
+	image_file = argv[0];
+
 	ccv_enable_default_cache();
 	ccv_dense_matrix_t* image = 0;
-	ccv_read(argv[1], &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
-	if (image != 0)
-	{
-		unsigned int elapsed_time = get_current_time();
-		ccv_array_t* words = ccv_swt_detect_words(image, ccv_swt_default_params);
-		elapsed_time = get_current_time() - elapsed_time;
-		if (words)
-		{
-			printf("total : %d in time %dms\n", words->rnum, elapsed_time);
-			int i;
-			for (i = 0; i < words->rnum; i++)
-			{
-				ccv_rect_t* rect = (ccv_rect_t*)ccv_array_get(words, i);
-				printf("%d %d %d %d\n", rect->x, rect->y, rect->width, rect->height);
-			}
-			
-			ccv_array_free(words);
-		}
-		ccv_matrix_free(image);
-	} else {
-		FILE* r = fopen(argv[1], "rt");
-		if (argc == 3)
-			chdir(argv[2]);
-		if(r)
-		{
-			size_t len = 1024;
-			char* file = (char*)malloc(len);
-			ssize_t read;
-			while((read = getline(&file, &len, r)) != -1)
-			{
-				while(read > 1 && isspace(file[read - 1]))
-					read--;
-				file[read] = 0;
-				image = 0;
-				printf("%s\n", file);
-				ccv_read(file, &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
-				ccv_array_t* words = ccv_swt_detect_words(image, ccv_swt_default_params);
-				int i;
-				for (i = 0; i < words->rnum; i++)
-				{
-					ccv_rect_t* rect = (ccv_rect_t*)ccv_array_get(words, i);
-					printf("%d %d %d %d\n", rect->x, rect->y, rect->width, rect->height);
-				}
-				ccv_array_free(words);
-				ccv_matrix_free(image);
-			}
-			free(file);
-			fclose(r);
-		}
+	ccv_read(image_file, &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
+
+	if (image==0) {
+		fprintf(stderr, "ERROR: image could not be read\n");
+		return 1;
 	}
+	
+	unsigned int elapsed_time = get_current_time();
+
+	ccv_swt_param_t params = ccv_swt_default_params;
+	if (scale_invariant)
+		params.scale_invariant = 1;
+
+	ccv_array_t* words = ccv_swt_detect_words(image, params);
+	elapsed_time = get_current_time() - elapsed_time;
+	if (words)
+	{
+		printf("total : %d in time %dms\n", words->rnum, elapsed_time);
+		int i;
+		for (i = 0; i < words->rnum; i++)
+		{
+			ccv_rect_t* rect = (ccv_rect_t*)ccv_array_get(words, i);
+			printf("%d %d %d %d\n", rect->x, rect->y, rect->width, rect->height);
+		}
+		
+		ccv_array_free(words);
+	}
+	ccv_matrix_free(image);
+	
 	ccv_drain_cache();
 	return 0;
 }
