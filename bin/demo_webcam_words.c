@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		raw_image = cvQueryFrame(webcam);
+
 		if (raw_image) {
 			cvsize.width = raw_image->width;
 			cvsize.height = raw_image->height;
@@ -46,7 +47,12 @@ int main(int argc, char *argv[])
 			ccv_read(curr_frame->imageData, &curr_frame_ccv, CCV_IO_GRAY_RAW, curr_frame->height, curr_frame->width, curr_frame->widthStep);
 
 			// get the words
-			ccv_array_t* words = ccv_swt_detect_words(curr_frame_ccv, ccv_swt_default_params);
+			ccv_swt_param_t params = ccv_swt_default_params;
+			params.size = 7; //def 3
+			params.max_height = cvsize.height/4;
+			params.min_area = 24;
+
+			ccv_array_t* words = ccv_swt_detect_words(curr_frame_ccv, params);
 			ccv_matrix_free(curr_frame_ccv);
 
 			//
@@ -63,15 +69,16 @@ int main(int argc, char *argv[])
 				ccv_array_free(words);
 			}
 
-			
-
-
-			
-
 			cvShowImage(win_name, raw_image);
 		}
 
 		// if ESC is pressed
 		if ((cvWaitKey(10) & 255) == 27) break;
 	}
+
+	// cleanup
+	cvReleaseCapture(&webcam);
+	cvDestroyWindow(win_name);
+
+	return 0;
 }
