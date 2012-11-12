@@ -402,8 +402,9 @@ static ccv_array_t* _ccv_swt_connected_letters(ccv_dense_matrix_t* a, ccv_dense_
 			letter->intensity += a->data.u8[point->x + point->y * a->step];
 		}
 		letter->intensity /= letter->contour->size;
-		ccv_contour_free(letter->contour);
-		letter->contour = 0;
+		// for some reason he frees the contours (probs to save memory)
+		// ccv_contour_free(letter->contour);
+		// letter->contour = 0;
 		ccv_array_push(new_letters, letter);
 	}
 	ccv_array_free(letters);
@@ -860,3 +861,105 @@ ccv_array_t* ccv_swt_detect_chars(ccv_dense_matrix_t* a, ccv_swt_param_t params)
 	// returns an array of ccv_rect_t which should be the character rectangles
 	return all_letters;
 }
+
+ccv_array_t* ccv_swt_detect_chars_contour(ccv_dense_matrix_t* a, ccv_swt_param_t params) {
+	// returns an array of contours
+
+
+	// copy the detect words one, but output chars instead
+	int hr = a->rows * 2 / (params.min_height + params.max_height);
+
+	int wr = a->cols * 2 / (params.min_height + params.max_height);
+	double scale = pow(2., 1. / (params.interval + 1.));
+	int next = params.interval + 1;
+	int scale_upto = params.scale_invariant ? (int)(log((double)ccv_min(hr, wr)) / log(scale)) : 1;
+	int i, k;
+
+	
+	// stores all the letter rectangles
+	ccv_array_t* all_letters = ccv_array_new(sizeof(ccv_contour_t*), 2, 0);
+
+	
+	ccv_dense_matrix_t* phx = a;
+
+	ccv_dense_matrix_t* pyr = a;
+	double cscale = 1.0;
+
+
+	for (k = 0; k < scale_upto; k++)
+	{
+		// create down-sampled image on-demand because swt itself is very memory intensive
+		if (k % next)
+		{
+			pyr = 0;
+			int j = k % next;
+			ccv_resample(phx, &pyr, 0, (int)(phx->rows / pow(scale, j)), (int)(phx->cols / pow(scale, j)), CCV_INTER_AREA);
+		} else if (k > 0) {
+			ccv_dense_matrix_t* pha = phx;
+			phx = 0;
+			ccv_sample_down(pha, &phx, 0, 0, 0);
+			if (pha != a)
+				ccv_matrix_free(pha);
+			pyr = phx;
+		}
+		ccv_dense_matrix_t* swt = 0;
+		params.direction = CCV_DARK_TO_BRIGHT;
+		ccv_swt(pyr, &swt, 0, params);
+		/* perform connected component analysis */
+		ccv_array_t* lettersB = _ccv_swt_connected_letters(pyr, swt, params);
+		ccv_matrix_free(swt);
+		
+
+		swt = 0;
+		params.direction = CCV_BRIGHT_TO_DARK;
+		ccv_swt(pyr, &swt, 0, params);
+		ccv_array_t* lettersF = _ccv_swt_connected_letters(pyr, swt, params);
+		ccv_matrix_free(swt);
+		if (pyr != phx)
+			ccv_matrix_free(pyr);
+
+		// combine bright and dark letters
+		ccv_array_t* scale_letters = ccv_array_new(sizeof(ccv_letter_t), (lettersB->rnum + lettersF->rnum), 0);
+
+		for (i = 0; i < lettersB->rnum; i++) {
+			ccv_array_push(scale_letters, (ccv_letter_t*)ccv_array_get(lettersB, i));
+		}
+		for (i = 0; i < lettersF->rnum; i++) {
+			ccv_array_push(scale_letters, (ccv_letter_t*)ccv_array_get(lettersF, i));
+		}
+
+		if (params.scale_invariant)
+		{
+			for (i = 0; i < scale_letters->rnum; i++)
+			{
+				ccv_letter_t* let = (ccv_letter_t*)ccv_array_get(scale_letters, i);
+				ccv_contour_t* origcont = let->contour;
+				ccv_contour_t* scalecont = ccv_contour_new(1);
+				for (int j = 0; j < origcont->size; j++) {
+					ccv_point_t* point = (ccv_point_t*)ccv_array_get(origcont->set, j);
+					point->x = (int)(point->x * cscale + 0.5);
+					point->y = (int)(point->y * cscale + 0.5);
+					ccv_contour_push(scalecont, *point);
+				}
+				ccv_array_push(all_letters, &scalecont);
+			}
+			
+			cscale *= scale;
+		} else
+			for (i = 0; i < scale_letters->rnum; i++) {
+				ccv_letter_t* let = (ccv_letter_t*)ccv_array_get(scale_letters, i);
+				ccv_contour_t* cont = let->contour;
+				ccv_array_push(all_letters, &cont);
+			}
+		ccv_array_free(scale_letters);
+
+	} // endfor
+	
+	if (phx != a)
+		ccv_matrix_free(phx);
+
+	// returns an array of ccv_contour_t which should be the character contours
+	return all_letters;
+}
+
+
