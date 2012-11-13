@@ -23,12 +23,23 @@ int main(int argc, char** argv)
 	// process arguments
 	char* image_file = "";
 	int scale_invariant = 0;
+	int min_height = 0;
+	int min_area = 0;
 	char ch;
-	while ((ch = getopt(argc, argv, "i")) != EOF)
+	while ((ch = getopt(argc, argv, "a:h:i")) != EOF)
 		switch(ch) {
 			case 'i':
 				scale_invariant = 1;
+				printf("Scale invariant\n");
 				break;
+			case 'h':
+				min_height = atoi(optarg);
+				printf("Min height %d\n", min_height);
+				continue;
+			case 'a':
+				min_area = atoi(optarg);
+				printf("Min area %d\n", min_area);
+				continue;
 		}
 	argc -= optind;
 	argv += optind;
@@ -48,6 +59,10 @@ int main(int argc, char** argv)
 	ccv_swt_param_t params = ccv_swt_default_params;
 	if (scale_invariant)
 		params.scale_invariant = 1;
+	if (min_height)
+		params.min_height = min_height;
+	if (min_area)
+		params.min_area = min_area;
 
 	ccv_array_t* letters = ccv_swt_detect_chars_contour(image, params);
 	elapsed_time = get_current_time() - elapsed_time;
