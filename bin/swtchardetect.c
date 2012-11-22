@@ -23,13 +23,37 @@ int main(int argc, char** argv)
 {
 	// process arguments
 	char* image_file = "";
+	int interval = 0;
 	int scale_invariant = 0;
+	int size = 0;
+	double low_thresh = 0.0;
+	double high_thresh = 0.0;
+	int max_height = 0;
+	int min_height = 0;
 	char ch;
-	while ((ch = getopt(argc, argv, "i")) != EOF)
+	while ((ch = getopt(argc, argv, "n:is:l:h:M:m:")) != EOF)
 		switch(ch) {
+			case 'n':
+				interval = atoi(optarg);
+				break;
 			case 'i':
 				scale_invariant = 1;
 				break;
+			case 's':
+				size = atoi(optarg);
+				break;
+			case 'l':
+				low_thresh = atof(optarg);
+				break;
+			case 'h':
+				high_thresh = atof(optarg);
+				break;
+			case 'M':
+				max_height = atoi(optarg);
+				break;
+			case 'm':
+				min_height = atoi(optarg);
+				break;	
 		}
 	argc -= optind;
 	argv += optind;
@@ -47,8 +71,23 @@ int main(int argc, char** argv)
 	unsigned int elapsed_time = get_current_time();
 
 	ccv_swt_param_t params = ccv_swt_default_params;
+
+	// Params that are relevant:
+	// interval (n=1), scale_invariant (i=0), size (s=3), low_thresh (l=124), high_thresh (h=204), max_height (M=300), min_height (m=8)
+	if (interval)
+		params.interval = interval;
 	if (scale_invariant)
 		params.scale_invariant = 1;
+	if (size)
+		params.size = size;
+	if (low_thresh)
+		params.low_thresh = low_thresh;
+	if (high_thresh)
+		params.high_thresh = high_thresh;
+	if (max_height)
+		params.max_height = max_height;
+	if (min_height)
+		params.min_height = min_height;
 
 	ccv_array_t* words = ccv_swt_detect_chars(image, params);
 	elapsed_time = get_current_time() - elapsed_time;
