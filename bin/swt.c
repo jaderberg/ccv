@@ -13,11 +13,27 @@ int main(int argc, char** argv)
 	char* image_file = "";
 	char* out_file = "";
 	int dark_to_bright = 1;
+	int size = 0;
+	double low_thresh = 0.0;
+	double high_thresh = 0.0;
+	int visualize = 0;
 	char ch;
-	while ((ch = getopt(argc, argv, "r")) != EOF)
+	while ((ch = getopt(argc, argv, "rs:l:h:v")) != EOF)
 		switch(ch) {
 			case 'r':
 				dark_to_bright = 0;
+				break;
+			case 's':
+				size = atoi(optarg);
+				break;
+			case 'l':
+				low_thresh = atof(optarg);
+				break;
+			case 'h':
+				high_thresh = atof(optarg);
+				break;
+			case 'v':
+				visualize = 1;
 				break;
 		}
 	argc -= optind;
@@ -36,20 +52,30 @@ int main(int argc, char** argv)
 
 	if (dark_to_bright) {
 		params.direction = CCV_DARK_TO_BRIGHT;
-		fprintf(stdout, "Computing dark to bright SWT\n");
+		// fprintf(stdout, "Computing dark to bright SWT\n");
 	}
 	else {
 		params.direction = CCV_BRIGHT_TO_DARK;
-		fprintf(stdout, "Computing bright to dark SWT\n");
+		// fprintf(stdout, "Computing bright to dark SWT\n");
 	}
+	if (size)
+		params.size = size;
+	if (low_thresh)
+		params.low_thresh = low_thresh;
+	if (high_thresh)
+		params.high_thresh = high_thresh;
 
 	ccv_swt(image, &swt, CCV_8U, params);
 	ccv_matrix_free(image);
 
-	// put in visual range
 	ccv_dense_matrix_t* vis_swt = 0;
-	ccv_visualize(swt, &vis_swt, 0);
-	ccv_matrix_free(swt);
+	if (visualize) {
+		// put in visual range
+		ccv_visualize(swt, &vis_swt, 0);
+		ccv_matrix_free(swt);
+	} else {
+		vis_swt = swt;
+	}
 	
 	char* suffix = strrchr(out_file, '.');
 	if (strncmp(suffix, ".png", 4) == 0) {
