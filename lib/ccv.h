@@ -676,6 +676,7 @@ void ccv_swt(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int type, ccv_swt_pa
 ccv_array_t* __attribute__((warn_unused_result)) ccv_swt_detect_words(ccv_dense_matrix_t* a, ccv_swt_param_t params);
 ccv_array_t* ccv_swt_detect_chars(ccv_dense_matrix_t* a, ccv_swt_param_t params);
 ccv_array_t* ccv_swt_detect_chars_contour(ccv_dense_matrix_t* a, ccv_swt_param_t params);
+ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t params);
 
 /* I'd like to include Deformable Part Models as a general object detection method in here
  * The difference between BBF and DPM:
