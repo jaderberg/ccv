@@ -16,25 +16,96 @@ unsigned int get_current_time()
 
 int main(int argc, char** argv)
 {
+	if (argc==1) {
+		printf("usage: %s [options] image_file\n", argv[0]);
+		printf("Available options [default]:\n%s", \
+			"-h    min height [8]\n"
+			"-H    max height [300]\n"
+			"-a    min area [38]\n"
+			"-s    canny size (must be an odd number) [3]\n"
+			"-t    canny low thresh [124]\n"
+			"-T    canny high thresh [204]\n"
+			"-o    letter occlude thresh (cannot occlude more than -o other letters) [3]\n"
+			"-r    maximum aspect ratio of a letter [8]\n"
+			"-v    max inner class variance for grouping letters [0.83]\n"
+			"-k    max thickness variance for grouping letters [1.5]\n"
+			"-g    max height variance for grouping letters [1.7]\n"
+			"-i    max intensity variance for grouping letters [31]\n"
+			"-d    max distance variance for grouping letters [2.9]\n"
+			"-I    max intersect variance for grouping letters [1.3]\n"
+			"-l    max letters threshold for grouping letters [3]\n"
+			"-e    max elongate variance for grouping letters [1.9]\n"
+			"-b    breakdown textlines to words [1]\n"
+			"-B    breakdown threshold [1.0]\n"
+			);
+		return 0;
+	}
+
 	// process arguments
 	char* image_file = "";
-	int scale_invariant = 0;
-	int min_height = 0;
-	int min_area = 0;
+	int size;
+	ccv_swt_param_t params = ccv_swt_default_params;
 	char ch;
-	while ((ch = getopt(argc, argv, "a:h:i")) != EOF)
+	while ((ch = getopt(argc, argv, "h:H:a:s:t:T:o:r:v:k:g:i:d:I:l:e:b:B:")) != EOF)
 		switch(ch) {
-			case 'i':
-				scale_invariant = 1;
-				printf("Scale invariant\n");
-				break;
 			case 'h':
-				min_height = atoi(optarg);
-				printf("Min height %d\n", min_height);
+				params.min_height = atoi(optarg);
+				continue;
+			case 'H':
+				params.max_height = atoi(optarg);
 				continue;
 			case 'a':
-				min_area = atoi(optarg);
-				printf("Min area %d\n", min_area);
+				params.min_area = atoi(optarg);
+				continue;
+			case 's':
+				size = atoi(optarg);
+				if (size % 2 == 0) {
+					fprintf(stderr, "ERROR: canny size option (-s) must be an odd number (%d given)\n", size);
+					return 1;
+				}
+				params.size = size;
+				continue;
+			case 't':
+				params.low_thresh = atoi(optarg);
+				continue;
+			case 'T':
+				params.high_thresh = atoi(optarg);
+				continue;
+			case 'o':
+				params.letter_occlude_thresh = atoi(optarg);
+				continue;
+			case 'r':
+				params.aspect_ratio = atof(optarg);
+				continue;
+			case 'v':
+				params.std_ratio = atof(optarg);
+				continue;
+			case 'k':
+				params.thickness_ratio = atof(optarg);
+				continue;
+			case 'g':
+				params.height_ratio = atof(optarg);
+				continue;
+			case 'i':
+				params.intensity_thresh = atoi(optarg);
+				continue;
+			case 'd':
+				params.distance_ratio = atof(optarg);
+				continue;
+			case 'I':
+				params.intersect_ratio = atof(optarg);
+				continue;
+			case 'l':
+				params.letter_thresh = atoi(optarg);
+				continue;
+			case 'e':
+				params.elongate_ratio = atof(optarg);
+				continue;
+			case 'b':
+				params.breakdown = atoi(optarg);
+				continue;
+			case 'B':
+				params.breakdown_ratio = atof(optarg);
 				continue;
 		}
 	argc -= optind;
@@ -51,16 +122,6 @@ int main(int argc, char** argv)
 	}
 	
 	unsigned int elapsed_time = get_current_time();
-
-	ccv_swt_param_t params = ccv_swt_default_params;
-	if (scale_invariant)
-		params.scale_invariant = 1;
-	if (min_height)
-		params.min_height = min_height;
-	if (min_area)
-		params.min_area = min_area;
-	params.breakdown = 1;
-
 	
 	ccv_dense_matrix_t* out_im = 0;
 	out_im = ccv_dense_matrix_renew(out_im, image->rows, image->cols, CCV_C1 | CCV_ALL_DATA_TYPE, CCV_8U | CCV_C1, image->sig);
