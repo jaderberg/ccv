@@ -1,11 +1,13 @@
 // Max Jaderberg 2/1/13
 
-//clang swtwordcontours.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -o swt_word_contours `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm
+//clang swtwordcontours.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -o swt_word_contours `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm -lopencv_core -lopencv_highgui -I/opt/local/include -L/opt/local/lib
 
 #include "ccv.h"
 #include <sys/time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 
 
 unsigned int get_current_time()
@@ -62,6 +64,10 @@ int main(int argc, char** argv)
 		params.min_area = min_area;
 	params.breakdown = 1;
 
+	IplImage* in_im = cvLoadImage(image_file, 0);
+	IplImage* out_im = cvCreateImage(cvGetSize(in_im), IPL_DEPTH_8U, 1);
+	CvScalar pixel;
+
 	ccv_array_t* textlines = ccv_swt_detect_words_contour(image, params);
 	elapsed_time = get_current_time() - elapsed_time;
 	if (textlines)
@@ -79,6 +85,10 @@ int main(int argc, char** argv)
 					// for each point in contour
 					ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, j);
 					printf("%d %d\n", point->x, point->y);
+					pixel.val[0] = 255;
+					pixel.val[1] = 255;
+					pixel.val[2] = 255;
+					cvSet2D(out_im, point->y, point->x, pixel); 
 				}
 				printf("Endcontour %d\n", j);
 			}
@@ -88,6 +98,10 @@ int main(int argc, char** argv)
 		ccv_array_free(textlines);
 	}
 	ccv_matrix_free(image);
+
+	cvSaveImage(strcat(image_file, "-words.png"), out_im, 0);
+	cvReleaseImage(&in_im);
+	cvReleaseImage(&out_im);
 	
 	ccv_drain_cache();
 	return 0;
