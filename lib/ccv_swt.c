@@ -279,15 +279,7 @@ ccv_array_t* _ccv_swt_connected_component(ccv_dense_matrix_t* a, int ratio, int 
 	return contours;
 }
 
-typedef struct {
-	ccv_rect_t rect;
-	ccv_point_t center;
-	int thickness;
-	int intensity;
-	double std;
-	double mean;
-	ccv_contour_t* contour;
-} ccv_letter_t;
+
 
 static ccv_array_t* _ccv_swt_connected_letters(ccv_dense_matrix_t* a, ccv_dense_matrix_t* swt, ccv_swt_param_t params)
 {
@@ -419,11 +411,7 @@ typedef struct {
 	int dy;
 } ccv_letter_pair_t;
 
-typedef struct {
-	ccv_rect_t rect;
-	int neighbors;
-	ccv_letter_t** letters;
-} ccv_textline_t;
+
 
 static int _ccv_in_textline(const void* a, const void* b, void* data)
 {
@@ -651,20 +639,6 @@ static ccv_array_t* _ccv_swt_break_words_tline(ccv_array_t* textline, ccv_swt_pa
 			ccv_array_push(textlines, t);
 		}
 	}
-	for (i=0; i < textlines->rnum; i++) {
-		ccv_textline_t* r = (ccv_textline_t*)ccv_array_get(textlines, i);
-
-		// TAKE OUT IN PRODUCTION
-		printf("%d letters in textline %d\n", r->neighbors, i);
-		for (int w = 0; w < r->neighbors; w++) {
-			_ccv_sort_letters(r->letters, r->neighbors, 0);
-			printf("    x, y = %d, %d\n", r->letters[w]->center.x, r->letters[w]->center.y);
-			ccv_contour_t* cont = r->letters[w]->contour;
-			printf("    Contour size = %d\n", cont->size);
-		}
-		//
-	}
-	printf("%d orig tlines, now %d\n", textline->rnum, textlines->rnum);
 
 	return textlines;
 }
@@ -1129,16 +1103,6 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 			{
 				ccv_textline_t* r = (ccv_textline_t*)ccv_array_get(textline, i);
 
-				// TAKE OUT IN PRODUCTION
-				printf("%d letters in textline %d\n", r->neighbors, i);
-				for (int w = 0; w < r->neighbors; w++) {
-					_ccv_sort_letters(r->letters, r->neighbors, 0);
-					printf("    x, y = %d, %d\n", r->letters[w]->center.x, r->letters[w]->center.y);
-					ccv_contour_t* cont = r->letters[w]->contour;
-					printf("    Contour size = %d\n", cont->size);
-				}
-				//
-
 				int k = *(int*)ccv_array_get(idx, i);
 				ccv_rect_t* r2 = (ccv_rect_t*)ccv_array_get(words, k);
 				ccv_textline_t* t2 = (ccv_textline_t*)ccv_array_get(textlines, k);
@@ -1158,22 +1122,22 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 	if (phx != a)
 		ccv_matrix_free(phx);
 
-	// TAKE OUT IN PRODUCTION
-	printf("Textlines:\n");
-	for (i=0; i < all_textlines->rnum; i++) {
-		ccv_textline_t* r = (ccv_textline_t*)ccv_array_get(all_textlines, i);
-		ccv_rect_t* rect = (ccv_rect_t*)ccv_array_get(all_words, i);
-		printf("%d letters in textline %d\n", r->neighbors, i);
-		printf("  t_rect: %d, %d\n", r->rect.width, r->rect.height);
-		printf("  w_rect: %d, %d\n", rect->width, rect->height);
-		for (int w = 0; w < r->neighbors; w++) {
-			_ccv_sort_letters(r->letters, r->neighbors, 0);
-			printf("    x, y = %d, %d\n", r->letters[w]->center.x, r->letters[w]->center.y);
-			ccv_contour_t* cont = r->letters[w]->contour;
-			printf("    Contour size = %d\n", cont->size);
-		}
-	}
-	//
+	// // TAKE OUT IN PRODUCTION
+	// printf("Textlines:\n");
+	// for (i=0; i < all_textlines->rnum; i++) {
+	// 	ccv_textline_t* r = (ccv_textline_t*)ccv_array_get(all_textlines, i);
+	// 	ccv_rect_t* rect = (ccv_rect_t*)ccv_array_get(all_words, i);
+	// 	printf("%d letters in textline %d\n", r->neighbors, i);
+	// 	printf("  t_rect: %d, %d\n", r->rect.width, r->rect.height);
+	// 	printf("  w_rect: %d, %d\n", rect->width, rect->height);
+	// 	for (int w = 0; w < r->neighbors; w++) {
+	// 		_ccv_sort_letters(r->letters, r->neighbors, 0);
+	// 		printf("    x, y = %d, %d\n", r->letters[w]->center.x, r->letters[w]->center.y);
+	// 		ccv_contour_t* cont = r->letters[w]->contour;
+	// 		printf("    Contour size = %d\n", cont->size);
+	// 	}
+	// }
+	// //
 	
 	return all_textlines;
 }

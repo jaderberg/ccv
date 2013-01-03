@@ -62,27 +62,30 @@ int main(int argc, char** argv)
 		params.min_area = min_area;
 	params.breakdown = 1;
 
-	ccv_swt_detect_words_contour(image, params);
-	ccv_array_t* letters = ccv_swt_detect_chars_contour(image, params);
+	ccv_array_t* textlines = ccv_swt_detect_words_contour(image, params);
 	elapsed_time = get_current_time() - elapsed_time;
-	if (letters)
+	if (textlines)
 	{	
-		// printf("total : %d in time %dms\n", letters->rnum, elapsed_time);
-		// int i;
-		// for (i = 0; i < letters->rnum; i++)
-		// {
-		// 	// for each letter
-		// 	ccv_contour_t* cont = *(ccv_contour_t**)ccv_array_get(letters, i);
-		// 	printf("Contour %d (size=%d):\n", i, cont->size);
-		// 	for (int j = 0; j < cont->size; j++) {
-		// 		// for each point in contour
-		// 		ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, j);
-		// 		printf("%d %d\n", point->x, point->y);
-		// 	}
-		// 	printf("End contour %d\n", i);
-		// }
+		printf("total : %d in time %dms\n", textlines->rnum, elapsed_time);
+		for (int i = 0; i < textlines->rnum; i++)
+		{
+			ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(textlines, i);
+			printf("Textline %d (%d letters):\n", i, t->neighbors);
+			for (int j = 0; j < t->neighbors; j++) {
+				// for each letter
+				ccv_contour_t* cont = t->letters[j]->contour;
+				printf("Contour %d (size=%d):\n", j, cont->size);
+				for (int j = 0; j < cont->size; j++) {
+					// for each point in contour
+					ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, j);
+					printf("%d %d\n", point->x, point->y);
+				}
+				printf("Endcontour %d\n", j);
+			}
+			printf("Endtextline %d\n", i);
+		}
 		
-		ccv_array_free(letters);
+		ccv_array_free(textlines);
 	}
 	ccv_matrix_free(image);
 	

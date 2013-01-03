@@ -672,6 +672,24 @@ typedef struct {
 
 extern const ccv_swt_param_t ccv_swt_default_params;
 
+typedef struct {
+	ccv_rect_t rect;
+	ccv_point_t center;
+	int thickness;
+	int intensity;
+	double std;
+	double mean;
+	ccv_contour_t* contour;
+} ccv_letter_t;
+
+typedef struct {
+	ccv_rect_t rect;
+	int neighbors;
+	ccv_letter_t** letters;
+} ccv_textline_t;
+
+
+
 void ccv_swt(ccv_dense_matrix_t* a, ccv_dense_matrix_t** b, int type, ccv_swt_param_t params);
 ccv_array_t* __attribute__((warn_unused_result)) ccv_swt_detect_words(ccv_dense_matrix_t* a, ccv_swt_param_t params);
 ccv_array_t* ccv_swt_detect_chars(ccv_dense_matrix_t* a, ccv_swt_param_t params);
