@@ -10,6 +10,8 @@
 #endif
 #endif
 
+#define __thread
+
 
 static __thread ccv_cache_t ccv_cache;
 

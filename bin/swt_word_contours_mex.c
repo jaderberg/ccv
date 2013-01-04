@@ -172,6 +172,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 					int nrhs, const mxArray *prhs[]) /* Input variable */
 {
 	mexPrintf("Hello, from swt detect!\n"); /* Do something interesting */
+    
 	return;
 }
 
