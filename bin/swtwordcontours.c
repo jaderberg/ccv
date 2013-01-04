@@ -18,26 +18,27 @@ int main(int argc, char** argv)
 {
 	if (argc==1) {
 		printf("usage: %s [options] image_file\n", argv[0]);
-		printf("Available options [default]:\n%s", \
-			"-h    min height [8]\n"
-			"-H    max height [300]\n"
-			"-a    min area [38]\n"
-			"-s    canny size (must be an odd number) [3]\n"
-			"-t    canny low thresh [124]\n"
-			"-T    canny high thresh [204]\n"
-			"-o    letter occlude thresh (cannot occlude more than -o other letters) [3]\n"
-			"-r    maximum aspect ratio of a letter [8]\n"
-			"-v    max inner class variance for grouping letters [0.83]\n"
-			"-k    max thickness variance for grouping letters [1.5]\n"
-			"-g    max height variance for grouping letters [1.7]\n"
-			"-i    max intensity variance for grouping letters [31]\n"
-			"-d    max distance variance for grouping letters [2.9]\n"
-			"-I    max intersect variance for grouping letters [1.3]\n"
-			"-l    max letters threshold for grouping letters [3]\n"
-			"-e    max elongate variance for grouping letters [1.9]\n"
-			"-b    breakdown textlines to words [1]\n"
-			"-B    breakdown threshold [1.0]\n"
+		printf("available options [default]:\n%s", \
+			"	-h    min height [8]\n"
+			"	-H    max height [300]\n"
+			"	-a    min area [38]\n"
+			"	-s    canny size (must be an odd number) [3]\n"
+			"	-t    canny low thresh [124]\n"
+			"	-T    canny high thresh [204]\n"
+			"	-o    letter occlude thresh (cannot occlude more than -o other letters) [3]\n"
+			"	-r    maximum aspect ratio of a letter [8]\n"
+			"	-v    max inner class variance for grouping letters [0.83]\n"
+			"	-k    max thickness variance for grouping letters [1.5]\n"
+			"	-g    max height variance for grouping letters [1.7]\n"
+			"	-i    max intensity variance for grouping letters [31]\n"
+			"	-d    max distance variance for grouping letters [2.9]\n"
+			"	-I    max intersect variance for grouping letters [1.3]\n"
+			"	-l    max letters threshold for grouping letters [3]\n"
+			"	-e    max elongate variance for grouping letters [1.9]\n"
+			"	-b    breakdown textlines to words [1]\n"
+			"	-B    breakdown threshold [1.0]\n"
 			);
+		printf("example: %s -s 5 -H 500 myimage.jpg\n", argv[0]);
 		return 0;
 	}
 
