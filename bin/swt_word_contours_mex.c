@@ -1,11 +1,14 @@
-// Max Jaderberg 2/1/13
+// Max Jaderberg 4/1/13
 
 //clang swtwordcontours.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -o swt_word_contours `cat /Users/jaderberg/Work/Utils/ccv_max/lib/.LN` -lm 
+
+//mex swt_word_contours_mex.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -lm -ljpeg -lpng -lz -L/usr/X11/lib -lm
 
 #include "ccv.h"
 #include <sys/time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include "mex.h"
 
 unsigned int get_current_time()
 {
@@ -13,6 +16,8 @@ unsigned int get_current_time()
 	gettimeofday(&tv, 0);
 	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
+
+
 
 int main(int argc, char** argv)
 {
@@ -132,7 +137,7 @@ int main(int argc, char** argv)
 	if (textlines)
 	{	
 		printf("total : %d in time %dms\n", textlines->rnum, elapsed_time);
-		int i, j, k;
+        int i, j, k;
 		for (i = 0; i < textlines->rnum; i++)
 		{
 			ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(textlines, i);
@@ -161,5 +166,12 @@ int main(int argc, char** argv)
 	
 	ccv_drain_cache();
 	return 0;
+}
+
+void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
+					int nrhs, const mxArray *prhs[]) /* Input variable */
+{
+	mexPrintf("Hello, from swt detect!\n"); /* Do something interesting */
+	return;
 }
 
