@@ -125,9 +125,8 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
     if (textlines)
 	{	
         mxArray* Words = mxCreateCellMatrix(textlines->rnum,1); // holds all the word structs
-        int i, j, k, cont_n;
-        double *S_pr;
-        mwSize S_ind;
+        int i, j, k;
+
         // ------- For each word
 		for (i = 0; i < textlines->rnum; i++)
 		{
@@ -153,7 +152,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 mxArray* Char = mxCreateStructMatrix(1,1,0,0); // represents a character
                 mxAddField(Char, "rect");
                 mxAddField(Char, "center");
-                mxAddField(Char, "S");
+                mxAddField(Char, "im");
                 
                 // populate the rect field
                 mxArray* char_rect = mxCreateDoubleMatrix(1, 4, mxREAL);
@@ -171,14 +170,14 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 char_center_pr[1] = t->letters[j]->center.y + 1;
                 mxSetField(Char, 0, "center", char_center);
                          
-                // populate the contour field (this is in index notation)
-                ccv_contour_t* cont = t->letters[j]->contour;
-                cont_n = cont->size;
-                mxArray* S;
-                S = mxCreateDoubleMatrix(cont_n, 1, mxREAL);
-                printf("%d contn\n", cont_n);
-                printf("%d rows\n", rows);
-                S_pr = (double *)mxGetPr(S);
+                // populate the id field                              
+//                 ccv_contour_t* cont = t->letters[j]->contour;
+//                 cont_n = cont->size;
+//                 mxArray* S;
+//                 S = mxCreateDoubleMatrix(cont_n, 1, mxREAL);
+//                 printf("%d contn\n", cont_n);
+//                 printf("%d rows\n", rows);
+//                 S_pr = (double *)mxGetPr(S);
 //                 for (S_ind = 0; S_ind < cont_n; S_ind++)
 //                     printf("%f\n", *S_pr++);
 //                 // ------ For each contour point
@@ -191,8 +190,8 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 //                     *S_pr++ = 3;
 //                     printf("%d k\n", S_ind);
 //                 }
-                printf("Setting field S\n");
-                mxSetField(Char, 0, "S", S);
+//                 printf("Setting field S\n");
+//                 mxSetField(Char, 0, "S", S);
                 
 
                 // append to the Chars cell array
@@ -204,10 +203,10 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
             // append to the Words cell array
             mxSetCell(Words, i, Word);
 		}
-		
-		ccv_array_free(textlines);
-        
+		       
         mxSetField(X, 0, "words", Words);
+        
+        ccv_array_free(textlines);
 	}
     
 	ccv_matrix_free(image);

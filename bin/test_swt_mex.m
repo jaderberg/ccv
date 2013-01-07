@@ -3,12 +3,12 @@
 % Tests out the swt_word_contours_mex.c file
 
 % Compile
-mex swt_word_contours_mex.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -ljpeg -lpng -lz -L/usr/X11/lib -lm -L/opt/local/lib -I/opt/local/include
+% mex swt_word_contours_mex.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -ljpeg -lpng -lz -L/usr/X11/lib -lm -L/opt/local/lib -I/opt/local/include
 
 im = imread('~/Desktop/ryan.jpg');
 img = rgb2gray(im);
 
-res = swt_word_contours_mex(img, 'B', '1.0', 's', '11');
+[res] = swt_word_contours_mex(img, 'B', '1.0', 's', '11');
 
 figure(1); clf;
 imshow(im); hold on;
