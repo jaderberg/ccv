@@ -44,10 +44,14 @@ function words = swt_word_contours(im, varargin)
     
     for i=1:length(res.words)
         for j=1:length(res.words{i}.chars)
-            res.words{i}.chars{j}.S = res.contours{res.words{i}.chars{j}.id};
+            id = res.words{i}.chars{j}.id;
+            res.words{i}.chars{j}.S = res.contours{id};
+            res.words{i}.chars{j}.rect = res.rectangles(:,id)';
+            res.words{i}.chars{j}.center = res.centers(:,id)';
         end
     end
     words = res.words;
+    clear res;
     
     if viz
         figure(42); clf;
