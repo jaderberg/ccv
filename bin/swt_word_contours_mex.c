@@ -5,7 +5,6 @@
 //mex swt_word_contours_mex.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -ljpeg -lpng -lz -L/usr/X11/lib -lm -L/opt/local/lib -I/opt/local/include
 
 #include "ccv.h"
-#include <sys/time.h>
 #include <ctype.h>
 #include <unistd.h>
 #include "mex.h"
@@ -115,13 +114,16 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 		}
     }
         
+
     ccv_enable_default_cache();
 	
 	ccv_array_t* textlines = ccv_swt_detect_words_contour(image, params);
     
     mxArray* X = mxCreateStructMatrix(1,1,0,0);
     mxAddField(X, "words");
-
+    mxAddField(X, "success");
+    int success = 1;
+    
     if (textlines)
 	{	
         mxArray* Words = mxCreateCellMatrix(textlines->rnum,1); // holds all the word structs
@@ -148,11 +150,11 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
             // populate the chars field
             mxArray* Chars = mxCreateCellMatrix(t->neighbors,1); // holds the character structs
             // ------ For each letter
-			for (j = 0; j < t->neighbors; j++) {
+			for (j = 0; j < t->neighbors; j++) {  
                 mxArray* Char = mxCreateStructMatrix(1,1,0,0); // represents a character
                 mxAddField(Char, "rect");
                 mxAddField(Char, "center");
-                mxAddField(Char, "im");
+                mxAddField(Char, "S");
                 
                 // populate the rect field
                 mxArray* char_rect = mxCreateDoubleMatrix(1, 4, mxREAL);
@@ -170,28 +172,26 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 char_center_pr[1] = t->letters[j]->center.y + 1;
                 mxSetField(Char, 0, "center", char_center);
                          
-                // populate the id field                              
-//                 ccv_contour_t* cont = t->letters[j]->contour;
-//                 cont_n = cont->size;
-//                 mxArray* S;
-//                 S = mxCreateDoubleMatrix(cont_n, 1, mxREAL);
-//                 printf("%d contn\n", cont_n);
-//                 printf("%d rows\n", rows);
-//                 S_pr = (double *)mxGetPr(S);
-//                 for (S_ind = 0; S_ind < cont_n; S_ind++)
-//                     printf("%f\n", *S_pr++);
-//                 // ------ For each contour point
-// 				for (S_ind = 0; S_ind < cont_n; S_ind++) {
-// //                     printf("%d k\n", k);
-// // 					ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
-// //                     double p_x = point->x;
-// //                     double p_y = point->y;
-// //                     printf("%f, %f\n", p_y, p_x);
-//                     *S_pr++ = 3;
-//                     printf("%d k\n", S_ind);
-//                 }
-//                 printf("Setting field S\n");
-//                 mxSetField(Char, 0, "S", S);
+                // populate the S field
+                ccv_contour_t* cont = t->letters[j]->contour;
+                
+               
+                // copy cont data
+                int sz = cont->size;
+                int dat[sz];
+                for (k = 0; k < sz; k++) {
+                    dat[k] = 1;
+                }
+                
+                mxArray* S = mxCreateCellMatrix(sz, 1);
+                double* S_pr = mxGetPr(S);
+                // ------ For each contour point
+                for (k = 0; k < cont->size; k++) {
+//                         ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
+//                         S_pr[k] = dat[k];
+                }
+//                     mxSetField(Char, 0, "S", S);
+                
                 
 
                 // append to the Chars cell array
@@ -213,6 +213,12 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 	
 	ccv_drain_cache();
        
+    
+    mxArray* succ = mxCreateDoubleMatrix(1, 1, mxREAL);
+    double* succ_pr = mxGetPr(succ);
+    succ_pr[0] = success;
+    mxSetField(X, 0, "success", succ);
+    
     plhs[0] = X;
     
 	return;
