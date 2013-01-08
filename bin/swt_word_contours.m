@@ -65,7 +65,6 @@ function words = swt_word_contours(im, varargin)
                 if isempty(words{i}.chars{j})
                     continue
                 end
-                words{i}.chars{j}.rect
                 r = rectangle('Position', words{i}.chars{j}.rect);
                 set(r, 'edgecolor', 'b');
                 plot(words{i}.chars{j}.center(1), words{i}.chars{j}.center(2), '+');
