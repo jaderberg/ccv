@@ -23,15 +23,20 @@
 %		B    breakdown threshold [1.0]
 %       M    number of cache rows [10000]
 %       N    number of cache cols [500]
+%
+%   Max Jaderberg 8/1/13
 
-function words = swt_word_contours(I, varargin)
+function words = swt_word_contours(im, varargin)
+
+    viz = true;
     
     words = {};
     
-    if numel(size(I)) == 3
-        I = rgb2gray(I);
+    % must be a gray image
+    if numel(size(im)) == 3
+        im = rgb2gray(im);
     end
-    res = swt_word_contours_mex(I, varargin{:});
+    res = swt_word_contours_mex(im, varargin{:});
     
     if ~res.success
         return
@@ -43,3 +48,37 @@ function words = swt_word_contours(I, varargin)
         end
     end
     words = res.words;
+    
+    if viz
+        figure(42); clf;
+        imshow(im); hold on;
+        for i=1:size(words)
+            r = rectangle('Position', words{i}.rect);
+            set(r, 'edgecolor', 'r');
+        end
+        hold off;
+
+        figure(43); clf;
+        imshow(im); hold on;
+        for i=1:size(words)
+            for j=1:size(words{i}.chars)
+                if isempty(words{i}.chars{j})
+                    continue
+                end
+                words{i}.chars{j}.rect
+                r = rectangle('Position', words{i}.chars{j}.rect);
+                set(r, 'edgecolor', 'b');
+                plot(words{i}.chars{j}.center(1), words{i}.chars{j}.center(2), '+');
+            end
+        end
+        hold off;
+
+        figure(44); clf;
+        M = zeros(size(im, 1), size(im, 2));
+        for i=1:size(words)
+            for j=1:size(words{i}.chars)
+                M(words{i}.chars{j}.S) = 1;
+            end
+        end
+        imshow(M);
+    end

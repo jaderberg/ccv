@@ -167,10 +167,11 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 mxSetM(temp_cont, cont->size);
                 cont_pr = mxGetPr(temp_cont);
                 for (k = 0; k < cont->size; k++) {
-                    point = (ccv_point_t*)ccv_array_get(cont->set, k);
                     if (k >= cont_rows)
                         mexErrMsgTxt("Not enough cache rows (increase 'M' option)");
-                    cont_pr[k] = 1;
+                    point = (ccv_point_t*)ccv_array_get(cont->set, k);
+                    int index = point->y + rows*point->x;
+                    cont_pr[k] = index + 1; // for matlab +1
                 }
                 n_cont++;
             }
