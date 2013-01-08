@@ -123,8 +123,18 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
     // preallocate memory for cont data
     int cont_rows = 10000;
     int cont_cols = 500;
-    double* cont_pr = mxMalloc(sizeof(double)*cont_rows*cont_cols); // maximum 10000 points per char, 500 chars per image
-    double* single_pr = 0;
+//     double* cont_pr = mxMalloc(sizeof(double)*cont_rows*cont_cols); // maximum 10000 points per char, 500 chars per image
+//     double* single_pr = 0;
+    
+    mxArray* Cont_cell = mxCreateCellMatrix(cont_cols, 1);
+    int ind;
+    for (ind = 0; ind < cont_cols; ind++) {
+        mxArray* cont_mat = mxCreateDoubleMatrix(0, 0, mxREAL);
+        mxSetM(cont_mat, cont_rows);
+        mxSetN(cont_mat, 1);
+        mxSetData(cont_mat, mxMalloc(sizeof(double)*cont_rows*1));
+        mxSetCell(Cont_cell, ind, cont_mat);
+    }
     
 	ccv_array_t* textlines = ccv_swt_detect_words_contour(image, params);
     
@@ -138,30 +148,58 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 	{	
         int i, j, k;
         // copy all the cont data into matlab mem
+//         int n_cont = 0;
+//         int sizes[cont_cols];
+//         mxArray* conts = mxCreateDoubleMatrix(0, 0, mxREAL);
+//         mxSetM(conts, cont_rows);
+//         mxSetN(conts, cont_cols);
+//         mxSetData(conts, cont_pr);
+//         ccv_contour_t* cont;
+//         ccv_textline_t* t;
+//         ccv_point_t* point;
+//         for (i = 0; i < textlines->rnum; i++) {
+//             t = (ccv_textline_t*)ccv_array_get(textlines, i);
+//             for (j = 0; j < t->neighbors; j++) {
+//                 cont = t->letters[j]->contour;
+//                 sizes[n_cont] = cont->size;
+//                 for (k = 0; k < cont->size; k++) {
+//                     point = (ccv_point_t*)ccv_array_get(cont->set, k);
+//                     if (k < cont_rows && n_cont < cont_cols)
+//                         cont_pr[k + cont_rows*n_cont] = 1;
+//                     else
+//                         printf("Too many conts\n");
+//                 }
+//                 n_cont++;
+//             }
+//             
+//         }
+//         printf("Copied data!\n");
+//         n_cont = 0;
+        printf("pre copy\n");
         int n_cont = 0;
         int sizes[cont_cols];
-        mxArray* conts = mxCreateDoubleMatrix(0, 0, mxREAL);
-        mxSetM(conts, cont_rows);
-        mxSetN(conts, cont_cols);
-        mxSetData(conts, cont_pr);
         ccv_contour_t* cont;
         ccv_textline_t* t;
         ccv_point_t* point;
+        mxArray* temp_cont;
+        double* cont_pr;
         for (i = 0; i < textlines->rnum; i++) {
             t = (ccv_textline_t*)ccv_array_get(textlines, i);
             for (j = 0; j < t->neighbors; j++) {
                 cont = t->letters[j]->contour;
                 sizes[n_cont] = cont->size;
+                temp_cont = mxGetCell(Cont_cell, n_cont);
+                mxSetM(temp_cont, cont->size);
+                cont_pr = mxGetPr(temp_cont);
                 for (k = 0; k < cont->size; k++) {
                     point = (ccv_point_t*)ccv_array_get(cont->set, k);
                     if (k < cont_rows && n_cont < cont_cols)
-                        cont_pr[k + cont_rows*n_cont] = 1;
+                        cont_pr[k] = 1;
                     else
                         printf("Too many conts\n");
                 }
                 n_cont++;
             }
-            
         }
         printf("Copied data!\n");
         n_cont = 0;
@@ -217,24 +255,8 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                          
                 // populate the S field
                 int cont_size = sizes[n_cont];
-//                 mxArray* S = mxCreateDoubleMatrix(0, 0, mxREAL);
-//                 mxSetM(S, cont_rows);
-//                 mxSetN(S, 1);
-//                 // point to the part of the big matrix which starts the n_cont column
-//                 printf("Before\n");
-//                 single_pr = cont_pr + cont_rows*n_cont;
-//                 printf("1bne\n");
-//                 mxSetData(S, single_pr);
-//                 printf("after");
-                
-//                 double* S_pr = mxGetPr(S);
-//                 // ------ For each contour point
-//                 for (k = 0; k < cont->size; k++) {
-// //                         ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
-// //                     S_pr[k] = dat[k];
-//                 }
-// //                     mxSetField(Char, 0, "S", S);
-//                 
+//                 mxSetField(Char, 0, "S", mxGetCell(Cont_cell, n_cont));
+       
                 // populate the size field
                 mxArray* sz = mxCreateDoubleMatrix(1, 1, mxREAL);
                 double* sz_pr = mxGetPr(sz);
@@ -251,8 +273,6 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 // append to the Chars cell array
                 mxSetCell(Chars, j, Char);
 			}
-            if (success==0)
-                break;
             
             mxSetField(Word, 0, "chars", Chars);
             
@@ -262,7 +282,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 		       
         mxSetField(X, 0, "words", Words);
         
-        mxSetField(X, 0, "contours", conts);
+        mxSetField(X, 0, "contours", Cont_cell);
         
         ccv_array_free(textlines);
 	}
