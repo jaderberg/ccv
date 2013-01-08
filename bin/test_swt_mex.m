@@ -11,7 +11,7 @@ img = rgb2gray(im);
 res.success = 0;
 
 while ~res.success
-    res = swt_word_contours_mex(img, 's', '3');
+    res = swt_word_contours_mex(img, 's', '3', 'N', '40');
 end
 
 figure(1); clf;
