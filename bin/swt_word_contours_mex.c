@@ -128,7 +128,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
     }
         
 
-    ccv_enable_default_cache();
+    // ccv_enable_default_cache();
 	
     // preallocate memory for cont data
     mxArray* Cont_cell = mxCreateCellMatrix(cont_cols, 1);
@@ -168,7 +168,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         // copy all the cont data into matlab mem
         int n_cont = 0;
         int sizes[cont_cols];
-        ccv_contour_t* cont;
+        
         ccv_textline_t* t;
         ccv_point_t* point;
         mxArray* temp_cont;
@@ -178,6 +178,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
             for (j = 0; j < t->neighbors; j++) {
                 if (n_cont >= cont_cols)
                     mexErrMsgTxt("Not enough cache columns (increase 'N' option)");
+                ccv_contour_t* cont;
                 cont = t->letters[j]->contour;
                 sizes[n_cont] = cont->size;
                 // read contour
@@ -191,6 +192,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                     int index = point->y + rows*point->x;
                     cont_pr[k] = index + 1; // for matlab +1
                 }
+                ccv_contour_free(cont);
                 // read rectangle
                 rectangles_pr[0 + n_cont*4] = t->letters[j]->rect.x + 1;
                 rectangles_pr[1 + n_cont*4] = t->letters[j]->rect.y + 1;
@@ -239,26 +241,9 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
                 mxAddField(Char, "S");
                 mxAddField(Char, "size");
                 mxAddField(Char, "id");
-                
-                // populate the rect field
-//                 mxArray* char_rect = mxCreateDoubleMatrix(1, 4, mxREAL);
-//                 double* char_rect_pr = mxGetPr(char_rect);
-//                 char_rect_pr[0] = t->letters[j]->rect.x + 1;
-//                 char_rect_pr[1] = t->letters[j]->rect.y + 1;
-//                 char_rect_pr[2] = t->letters[j]->rect.width;
-//                 char_rect_pr[3] = t->letters[j]->rect.height;
-//                 mxSetField(Char, 0, "rect", char_rect);
-                
-                // populate the center field
-//                 mxArray* char_center = mxCreateDoubleMatrix(1, 2, mxREAL);
-//                 double* char_center_pr = mxGetPr(char_center);
-//                 char_center_pr[0] = t->letters[j]->center.x + 1;
-//                 char_center_pr[1] = t->letters[j]->center.y + 1;
-//                 mxSetField(Char, 0, "center", char_center);
-                         
+   
                 // populate the S field
                 int cont_size = sizes[n_cont];
-//                 mxSetField(Char, 0, "S", mxCreateSharedDataCopy(mxGetCell(Cont_cell, n_cont)));
        
                 // populate the size field
                 mxArray* sz = mxCreateDoubleMatrix(1, 1, mxREAL);
@@ -281,6 +266,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
             
             // append to the Words cell array
             mxSetCell(Words, i, Word);
+
 		}
 		       
         mxSetField(X, 0, "words", Words);
