@@ -34,7 +34,7 @@ end
 hold off;
 
 figure(3); clf;
-M = zeros(size(img));
+M = zeros(size(im, 1), size(im, 2));
 for i=1:size(words)
     for j=1:size(words{i}.chars)
         M(words{i}.chars{j}.S) = 1;

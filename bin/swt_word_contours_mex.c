@@ -4,6 +4,9 @@
 
 //mex swt_word_contours_mex.c -L"/Users/jaderberg/Work/Utils/ccv_max/lib" -I"/Users/jaderberg/Work/Utils/ccv_max/lib" -lccv -ljpeg -lpng -lz -L/usr/X11/lib -lm -L/opt/local/lib -I/opt/local/include
 
+//for cluster:
+//mex swt_word_contours_mex.c -L"/users/max/Work/Utils/ccv_max/lib" -I"/users/max/Work/Utils/ccv_max/lib" -lccv -ljpeg -lpng -lz -L/usr/X11/lib -I/usr/include -L/usr/lib64 -lm -f /users/max/Work/Utils/ccv_max/bin/gnu89mexopts.sh
+
 #include "ccv.h"
 #include <ctype.h>
 #include <unistd.h>

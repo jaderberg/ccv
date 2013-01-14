@@ -1,0 +1,9 @@
+On the cluster, there are certain things which must be done for compilation:
+> need -std=gnu89 flag for library compilation
+> need to add -I/usr/include -L/usr/lib64 for libjpeg/png etc
+> change <libpng/png.h> to <png.h>
+
+For mex compilation ensure
+> #define __thread so that __thread is not used
+> add -fPIC flag for library compilation
+> use mex options with a -std=gnu89

@@ -256,7 +256,7 @@ int main(int argc, char** argv)
 		.interval = 1,
 		.same_word_thresh = { 0.2, 0.8 },
 		.min_neighbors = 1,
-		.scale_invariant = 0,
+		.scale_invariant = 1,
 		.size = 3,
 		.low_thresh = 78,
 		.high_thresh = 214,
@@ -450,7 +450,7 @@ int main(int argc, char** argv)
 	FILE* r = fopen(argv[1], "rt");
 	if (!r)
 		exit_with_help();
-	// ccv_enable_cache(1024 * 1024 * 1024);
+	ccv_enable_cache(1024 * 1024 * 1024);
 	ccv_array_t* aof = ccv_array_new(sizeof(char*), 64, 0);
 	ccv_array_t* aow = ccv_array_new(sizeof(ccv_array_t*), 64, 0);
 	ccv_array_t* cw = 0;
@@ -553,7 +553,6 @@ int main(int argc, char** argv)
 				recall[k] += one_recall; \
 				total_words[k] += words->rnum; \
 				ccv_array_free(words); \
-				FLUSH("perform SWT on %s (%d / %d) for " #parameter " = (%lg <- [%lg, %lg])", name, j + 1, aof->rnum, v, parameter##_range.min_value, parameter##_range.max_value); \
 			} \
 			ccv_matrix_free(image); \
 		} \
