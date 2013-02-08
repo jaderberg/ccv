@@ -1122,7 +1122,7 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 	if (phx != a)
 		ccv_matrix_free(phx);
 
-	// // TAKE OUT IN PRODUCTION
+	// TAKE OUT IN PRODUCTION
 	// printf("Textlines:\n");
 	// for (i=0; i < all_textlines->rnum; i++) {
 	// 	ccv_textline_t* r = (ccv_textline_t*)ccv_array_get(all_textlines, i);
@@ -1135,9 +1135,54 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 	// 		printf("    x, y = %d, %d\n", r->letters[w]->center.x, r->letters[w]->center.y);
 	// 		ccv_contour_t* cont = r->letters[w]->contour;
 	// 		printf("    Contour size = %d\n", cont->size);
+	// 		for (k = 0; k < cont->size; k++) {
+	// 			// for each point in contour
+	// 			ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
+	// 			if (point->x > 9999 || point->x < -9999) {
+	// 				printf("%d %d\n", point->x, point->y); // +1s are for MATLAB indexing
+	// 			}
+	// 		}
 	// 	}
 	// }
-	// //
+	//
+
+	ccv_dense_matrix_t* image = a;
+	int j;
+	for (i = 0; i < all_textlines->rnum; i++)
+	{
+		// for each word
+		ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(all_textlines, i);
+		printf("Textline\n");
+		// print rectangle
+		printf("Rectangle\n");
+		printf("%d %d %d %d\n", t->rect.x, t->rect.y, t->rect.width, t->rect.height);
+		printf("Endrectangle\n");
+		for (j = 0; j < t->neighbors; j++) {
+			// for each letter
+			printf("Character\n");
+			// print rectangle
+			printf("Rectangle\n");
+			printf("%d %d %d %d\n", t->letters[j]->rect.x, t->letters[j]->rect.y, t->letters[j]->rect.width, t->letters[j]->rect.height);
+			printf("Endrectangle\n");
+			// print center
+			printf("Center\n");
+			printf("%d %d\n", t->letters[j]->center.x, t->letters[j]->center.y);
+			printf("Endcenter\n");
+			// print contour
+			ccv_contour_t* cont = t->letters[j]->contour;
+			printf("Contour\n");
+			for (k = 0; k < cont->size; k++) {
+				// for each point in contour
+				ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
+				int index = point->y + (image->rows)*(point->x);
+				printf("%d %d %d\n", point->x, point->y, index); // +1s are for MATLAB indexing
+				// (out_im)->data.u8[(point->y) * (out_im)->step + (point->x) * CCV_GET_CHANNEL(CCV_8U | CCV_C1) + (1)] = 255;
+			}
+			printf("Endcontour\n");
+			printf("Endcharacter\n");
+		}
+		printf("Endtextline\n");
+	}
 	
 	return all_textlines;
 }

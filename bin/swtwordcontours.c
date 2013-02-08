@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 	argv += optind;
 	image_file = argv[0];
 	
-	ccv_enable_default_cache();
+	// ccv_enable_default_cache();
 	ccv_dense_matrix_t* image = 0;
 	ccv_read(image_file, &image, CCV_IO_GRAY | CCV_IO_ANY_FILE);
 
@@ -122,61 +122,61 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	unsigned int elapsed_time = get_current_time();
+	// unsigned int elapsed_time = get_current_time();
 	
 	// ccv_dense_matrix_t* out_im = 0;
 	// out_im = ccv_dense_matrix_renew(out_im, image->rows, image->cols, CCV_C1 | CCV_ALL_DATA_TYPE, CCV_8U | CCV_C1, image->sig);
 
 	ccv_array_t* textlines = ccv_swt_detect_words_contour(image, params);
-	elapsed_time = get_current_time() - elapsed_time;
-	if (textlines)
-	{	
-		printf("total : %d in time %dms. nb: all values are zero indexed.\n", textlines->rnum, elapsed_time);
-		int i, j, k;
-		for (i = 0; i < textlines->rnum; i++)
-		{
-			// for each word
-			ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(textlines, i);
-			printf("Textline\n");
-			// print rectangle
-			printf("Rectangle\n");
-			printf("%d %d %d %d\n", t->rect.x, t->rect.y, t->rect.width, t->rect.height);
-			printf("Endrectangle\n");
-			for (j = 0; j < t->neighbors; j++) {
-				// for each letter
-				printf("Character\n");
-				// print rectangle
-				printf("Rectangle\n");
-				printf("%d %d %d %d\n", t->letters[j]->rect.x, t->letters[j]->rect.y, t->letters[j]->rect.width, t->letters[j]->rect.height);
-				printf("Endrectangle\n");
-				// print center
-				printf("Center\n");
-				printf("%d %d\n", t->letters[j]->center.x, t->letters[j]->center.y);
-				printf("Endcenter\n");
-				// print contour
-				ccv_contour_t* cont = t->letters[j]->contour;
-				printf("Contour\n");
-				for (k = 0; k < cont->size; k++) {
-					// for each point in contour
-					ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
-					int index = point->y + (image->rows)*(point->x);
-					printf("%d %d %d\n", point->x, point->y, index); // +1s are for MATLAB indexing
-					// (out_im)->data.u8[(point->y) * (out_im)->step + (point->x) * CCV_GET_CHANNEL(CCV_8U | CCV_C1) + (1)] = 255;
-				}
-				printf("Endcontour\n");
-				printf("Endcharacter\n");
-			}
-			printf("Endtextline\n");
-		}
+	// elapsed_time = get_current_time() - elapsed_time;
+	// if (textlines)
+	// {	
+	// 	printf("total : %d in time %dms. nb: all values are zero indexed.\n", textlines->rnum, elapsed_time);
+	// 	int i, j, k;
+	// 	for (i = 0; i < textlines->rnum; i++)
+	// 	{
+	// 		// for each word
+	// 		ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(textlines, i);
+	// 		printf("Textline\n");
+	// 		// print rectangle
+	// 		printf("Rectangle\n");
+	// 		printf("%d %d %d %d\n", t->rect.x, t->rect.y, t->rect.width, t->rect.height);
+	// 		printf("Endrectangle\n");
+	// 		for (j = 0; j < t->neighbors; j++) {
+	// 			// for each letter
+	// 			printf("Character\n");
+	// 			// print rectangle
+	// 			printf("Rectangle\n");
+	// 			printf("%d %d %d %d\n", t->letters[j]->rect.x, t->letters[j]->rect.y, t->letters[j]->rect.width, t->letters[j]->rect.height);
+	// 			printf("Endrectangle\n");
+	// 			// print center
+	// 			printf("Center\n");
+	// 			printf("%d %d\n", t->letters[j]->center.x, t->letters[j]->center.y);
+	// 			printf("Endcenter\n");
+	// 			// print contour
+	// 			ccv_contour_t* cont = t->letters[j]->contour;
+	// 			printf("Contour\n");
+	// 			for (k = 0; k < cont->size; k++) {
+	// 				// for each point in contour
+	// 				ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);
+	// 				int index = point->y + (image->rows)*(point->x);
+	// 				printf("%d %d %d\n", point->x, point->y, index); // +1s are for MATLAB indexing
+	// 				// (out_im)->data.u8[(point->y) * (out_im)->step + (point->x) * CCV_GET_CHANNEL(CCV_8U | CCV_C1) + (1)] = 255;
+	// 			}
+	// 			printf("Endcontour\n");
+	// 			printf("Endcharacter\n");
+	// 		}
+	// 		printf("Endtextline\n");
+	// 	}
 		
-		ccv_array_free(textlines);
-	}
+	// 	ccv_array_free(textlines);
+	// }
 	ccv_matrix_free(image);
 
 	// ccv_write(out_im, strcat(image_file, "-words.png"), 0, CCV_IO_PNG_FILE, 0);
 	// ccv_matrix_free(out_im);
 	
-	ccv_drain_cache();
+	// ccv_drain_cache();
 	return 0;
 }
 
