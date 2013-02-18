@@ -1161,13 +1161,13 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 			// for each letter
 			printf("Character\n");
 			// print rectangle
-			printf("Rectangle\n");
-			printf("%d %d %d %d\n", t->letters[j]->rect.x, t->letters[j]->rect.y, t->letters[j]->rect.width, t->letters[j]->rect.height);
-			printf("Endrectangle\n");
-			// print center
-			printf("Center\n");
-			printf("%d %d\n", t->letters[j]->center.x, t->letters[j]->center.y);
-			printf("Endcenter\n");
+			// printf("Rectangle\n");
+			// printf("%d %d %d %d\n", t->letters[j]->rect.x, t->letters[j]->rect.y, t->letters[j]->rect.width, t->letters[j]->rect.height);
+			// printf("Endrectangle\n");
+			// // print center
+			// printf("Center\n");
+			// printf("%d %d\n", t->letters[j]->center.x, t->letters[j]->center.y);
+			// printf("Endcenter\n");
 			// print contour
 			ccv_contour_t* cont = t->letters[j]->contour;
 			printf("Contour\n");
