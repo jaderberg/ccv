@@ -1148,15 +1148,17 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 
 	ccv_dense_matrix_t* image = a;
 	int j;
+	printf("numwords: %d\n", all_textlines->rnum);
 	for (i = 0; i < all_textlines->rnum; i++)
 	{
 		// for each word
 		ccv_textline_t* t = (ccv_textline_t*)ccv_array_get(all_textlines, i);
 		printf("Textline\n");
 		// print rectangle
-		printf("Rectangle\n");
-		printf("%d %d %d %d\n", t->rect.x, t->rect.y, t->rect.width, t->rect.height);
-		printf("Endrectangle\n");
+		// printf("Rectangle\n");
+		// printf("%d %d %d %d\n", t->rect.x, t->rect.y, t->rect.width, t->rect.height);
+		// printf("Endrectangle\n");
+		printf("numchars: %d\n", t->neighbors);
 		for (j = 0; j < t->neighbors; j++) {
 			// for each letter
 			printf("Character\n");
@@ -1171,6 +1173,7 @@ ccv_array_t* ccv_swt_detect_words_contour(ccv_dense_matrix_t* a, ccv_swt_param_t
 			// print contour
 			ccv_contour_t* cont = t->letters[j]->contour;
 			printf("Contour\n");
+			printf("numcont: %d\n", cont->size);
 			for (k = 0; k < cont->size; k++) {
 				// for each point in contour
 				ccv_point_t* point = (ccv_point_t*)ccv_array_get(cont->set, k);

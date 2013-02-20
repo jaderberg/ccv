@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "mex.h"
 
 #define DATA_SIZE 128
@@ -56,6 +57,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 
     mexPrintf("CMD: %s\n", cmd_str);
 
+    // RUN SWT DETECTION
 	pf = popen(cmd_str, "r");
 
  	if(!pf){
@@ -63,16 +65,158 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
 		return ;
     }
  
+    // Parse result and populate return structure
+    mxArray* X;
 
-    while(fgets(data, 80, pf) != NULL)
+    char subbuff[64];
+    int n_words;
+    int n_word = 0;
+    int n_chars;
+    int n_char;
+    int n_cont;
+    double x, y, ind;
+    double* pr;
+
+
+    while(fgets(data, DATA_SIZE, pf) != NULL)
 	{
 		// this is where you parse into a matlab thing
-		mexPrintf("%s", data);;
+
+		// numwords
+		strcpy(subbuff, "numwords: ");
+		if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+			sscanf(data, "numwords: %d", &n_words);
+			X = mxCreateCellMatrix(1, n_words);
+		}
+
+		if (!n_words)
+			continue;
+
+		// Textline
+		strcpy(subbuff, "Textline");
+		if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+			// start a new word
+			mxArray* Word = mxCreateStructMatrix(1,1,0,0);
+			mxAddField(Word, "rect");
+			mxAddField(Word, "chars");
+			mxArray* Chars;
+			mxArray* Rect = mxCreateDoubleMatrix(1, 4, mxREAL);
+			double minw_x = 9999999;
+			double minw_y = 9999999;
+			double maxw_x = 0;
+			double maxw_y = 0;
+			n_char = 0;
+			// parse word data
+			while(fgets(data, DATA_SIZE, pf) != NULL) {
+				// Endtextline
+				strcpy(subbuff, "Endtextline");
+				if (strncmp(data, subbuff, strlen(subbuff)) == 0)
+					break;
+				// numchars
+				strcpy(subbuff, "numchars: ");
+				if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+					sscanf(data, "numchars: %d", &n_chars);
+					Chars = mxCreateCellMatrix(1, n_chars);
+					continue;
+				}
+				// Character
+				strcpy(subbuff, "Character");
+				if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+					// Create the char struct
+					mxArray* Char = mxCreateStructMatrix(1,1,0,0);
+					mxAddField(Char, "rect");
+					mxAddField(Char, "center");
+					mxAddField(Char, "S");
+					mxArray* Charrect = mxCreateDoubleMatrix(1, 4, mxREAL);
+					double min_x = 9999999;
+					double min_y = 9999999;
+					double max_x = 0;
+					double max_y = 0;
+					mxArray* Charcenter = mxCreateDoubleMatrix(1, 2, mxREAL);
+					// parse character data
+					while(fgets(data, DATA_SIZE, pf) != NULL) {
+						// Endtextline
+						strcpy(subbuff, "Endcharacter");
+						if (strncmp(data, subbuff, strlen(subbuff)) == 0)
+							break;
+						// Contour
+						strcpy(subbuff, "Contour");
+						if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+							// read how long the contour will be
+							if (fgets(data, DATA_SIZE, pf) != NULL) {
+								strcpy(subbuff, "numcont: ");
+								if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+									sscanf(data, "numcont: %d", &n_cont);
+								}
+								// create the contour matrix
+								mxArray* Cont = mxCreateDoubleMatrix(n_cont, 1, mxREAL);
+								pr = mxGetPr(Cont);
+								double last_good_ind = 1;
+								// read in the contour data
+								while(fgets(data, DATA_SIZE, pf) != NULL) {
+									// Endcontour
+									strcpy(subbuff, "Endcontour");
+									if (strncmp(data, subbuff, strlen(subbuff)) == 0) {
+										break;
+									} else {
+										// read the point
+										sscanf(data, "%lf %lf %lf", &x, &y, &ind);
+										*pr = ind + 1; // +1 for matlab indexing
+										pr++;
+										// form character rectangle
+										min_x = fmin(min_x, x);
+										min_y = fmin(min_y, y);
+										max_x = fmax(max_x, x);
+										max_y = fmax(max_y, y);
+									}
+								}
+								mxSetField(Char, 0, "S", Cont);
+								// create the rectangle
+								pr = mxGetPr(Charrect);
+								pr[0] = min_x + 1;
+								pr[1] = min_y + 1;
+								pr[2] = max_x - min_x;
+								pr[3] = max_y - min_y;
+								mxSetField(Char, 0, "rect", Charrect);
+								// create the center
+								pr = mxGetPr(Charcenter);
+								pr[0] = round((max_x - min_x)/2) + 1;
+								pr[1] = round((max_y - min_y)/2) + 1;
+								mxSetField(Char, 0, "center", Charcenter);
+								// form word rectangle
+								minw_x = fmin(minw_x, min_x);
+								minw_y = fmin(minw_y, min_y);
+								maxw_x = fmax(maxw_x, max_x);
+								maxw_y = fmax(maxw_y, max_y);
+							}
+						}
+					} // charwhile
+					mxSetCell(Chars, n_char, Char);
+					n_char++;
+				}
+			} // wordwhile
+			mxSetField(Word, 0, "chars", Chars);
+			// create rectangle
+			pr = mxGetPr(Rect);
+			pr[0] = minw_x + 1;
+			pr[1] = minw_y + 1;
+			pr[2] = maxw_x - minw_x;
+			pr[3] = maxw_y - minw_y;
+			mxSetField(Word, 0, "rect", Rect);
+
+			mxSetCell(X, n_word, Word);
+			n_word++;
+		}
+
+
 	}
  
     if (pclose(pf) != 0)
     	mexErrMsgTxt("Error: failed to close pipe");
 
+
+    plhs[0] = X;
+    nlhs = 1;
 	return;
 }
 
